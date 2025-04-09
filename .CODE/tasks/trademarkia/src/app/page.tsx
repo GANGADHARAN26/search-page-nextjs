@@ -1,12 +1,62 @@
 'use client'
 import { Camera, Search } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Filter from "./components/Filter";
+import Loading from "./components/Loading";
+import Error from "./components/Error";
 
 export default function Home() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError('');
+
+      try {
+        const response = await fetch('https://vit-tm-task.api.trademarkia.app/api/v3/us', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            input_query: 'check',
+            input_query_type: '',
+            sort_by: 'default',
+            status: [],
+            exact_match: false,
+            date_query: false,
+            owners: [],
+            attorneys: [],
+            law_firms: [],
+            mark_description_description: [],
+            classes: [],
+            page: 1,
+            rows: 10,
+            sort_order: 'desc',
+            states: [],
+            counties: [],
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Something went wrong');
+        }
+
+        const result = await response.json();
+        setData(result);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <div>
       {/* Headerserction */}
@@ -38,7 +88,9 @@ export default function Home() {
         </div>
       </div>
       <div>
- <Filter/>
+      {loading&& <Loading/>}
+      {error&& <Error/>}
+      {data&&<p>Fetched successfully</p>}
       </div>
     </div>
   );
